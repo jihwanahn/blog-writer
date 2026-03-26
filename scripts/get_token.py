@@ -14,6 +14,8 @@ from google.auth.transport.requests import Request
 SCOPES = [
     'https://www.googleapis.com/auth/blogger',
     'https://www.googleapis.com/auth/webmasters',
+    'https://www.googleapis.com/auth/youtube.upload',
+    'https://www.googleapis.com/auth/youtube',
 ]
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

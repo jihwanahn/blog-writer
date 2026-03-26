@@ -97,10 +97,24 @@ def calc_freshness_score(published_at: datetime | None, max_score: int = 20) -> 
 
 def calc_korean_relevance(text: str, rules: dict) -> int:
     """한국 독자 관련성 점수"""
+    max_score = rules['scoring']['korean_relevance']['max']
     keywords = rules['scoring']['korean_relevance']['keywords']
+
+    # 한국어 문자(가-힣) 비율 체크 — 한국어 콘텐츠 자체에 기본점수 부여
+    korean_chars = sum(1 for c in text if '\uac00' <= c <= '\ud7a3')
+    korean_ratio = korean_chars / max(len(text), 1)
+    if korean_ratio >= 0.15:
+        base = 15  # 한국어 텍스트면 기본 15점
+    elif korean_ratio >= 0.05:
+        base = 8
+    else:
+        base = 0
+
+    # 브랜드/지역 키워드 보너스
     matched = sum(1 for kw in keywords if kw in text)
-    score = min(matched * 6, rules['scoring']['korean_relevance']['max'])
-    return score
+    bonus = min(matched * 5, max_score - base)
+
+    return min(base + bonus, max_score)
 
 
 def calc_source_trust(source_url: str, rules: dict) -> tuple[int, str]:
@@ -215,9 +229,14 @@ def calculate_quality_score(item: dict, rules: dict) -> int:
 
     kr_score = calc_korean_relevance(text, rules)
     fresh_score = calc_freshness_score(pub_at)
-    # search_demand: pytrends 연동 후 실제값 사용 (현재 기본값 10)
-    search_score = item.get('search_demand_score', 10)
-    trust_score, trust_level = calc_source_trust(source_url, rules)
+    # search_demand: pytrends 연동 후 실제값 사용 (RSS 기본값 12)
+    search_score = item.get('search_demand_score', 12)
+    # 신뢰도: _trust_override 이미 설정된 경우 우선 사용
+    if '_trust_score' in item:
+        trust_score = item['_trust_score']
+        trust_level = item.get('source_trust_level', 'medium')
+    else:
+        trust_score, trust_level = calc_source_trust(source_url, rules)
     mono_score = calc_monetization(text, rules)
 
     item['korean_relevance_score'] = kr_score

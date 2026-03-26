@@ -1,5 +1,5 @@
 {
-  "min_score": 70,
+  "min_score": 60,
   "scoring": {
     "korean_relevance": {
       "max": 30,

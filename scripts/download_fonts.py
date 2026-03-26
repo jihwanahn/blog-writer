@@ -93,7 +93,7 @@ def main():
     copied = copy_windows_fonts()
 
     if len(copied) >= 2:
-        print(f"\n✅ Windows 폰트 복사 완료 ({len(copied)}개)")
+        print(f"\n[OK] Windows 폰트 복사 완료 ({len(copied)}개)")
         _verify_all()
         return
 
